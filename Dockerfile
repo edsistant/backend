@@ -1,40 +1,24 @@
-FROM --platform=$BUILDPLATFORM golang:1.22.5-alpine AS builder
+FROM golang:1.22.5
 
+# Set destination for COPY
 WORKDIR /app
 
-ENV CGO_ENABLED 0
-ENV GOPATH /go
-ENV GOCACHE /go-build
-
+# Download Go modules
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod/cache \
-  go mod download
+RUN go mod download
 
-COPY . .
+# Copy the source code. Note the slash at the end, as explained in
+# https://docs.docker.com/engine/reference/builder/#copy
+COPY *.go ./
 
-RUN --mount=type=cache,target=/go/pkg/mod/cache \
-  --mount=type=cache,target=/go-build \
-  go build -o bin/backend main.go
+# Build
+RUN CGO_ENABLED=0 GOOS=linux go build -o /backend
 
-CMD ["/app/bin/backend"]
+# To bind to a TCP port, runtime parameters must be supplied to the docker command.
+# But we can (optionally) document in the Dockerfile what ports
+# the application is going to listen on by default.
+# https://docs.docker.com/engine/reference/builder/#expose
+EXPOSE 8080
 
-FROM builder as dev-envs
-
-RUN <<EOF
-apk update
-apk add git
-EOF
-
-RUN <<EOF
-addgroup -S docker
-adduser -S --shell /bin/bash --ingroup docker vscode
-EOF
-
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-
-CMD ["go", "run", "main.go"]
-
-FROM scratch
-COPY --from=builder /app/bin/backend /usr/local/bin/backend
-CMD ["/usr/local/bin/backend"]
+# Run
+CMD [ "/backend" ]
