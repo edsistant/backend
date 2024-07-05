@@ -1,5 +1,5 @@
 module github.com/edsistant/backend
 
-go 1.22.4
+go 1.22.5
 
 require github.com/gorilla/mux v1.8.1
