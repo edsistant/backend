@@ -1,9 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Edsistant API v1"))
+	fmt.Fprint(w, "Edsistant API v1")
 }

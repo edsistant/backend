@@ -10,6 +10,6 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/api/", api.Index)
+	r.HandleFunc("/api/", api.Index).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
